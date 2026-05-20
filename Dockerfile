@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     sudo \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -43,7 +44,12 @@ RUN --mount=type=secret,id=gmatbard_github_token \
 
 RUN mkdir -p /workspace/user_analysis
 
+# Pre-configure claude: auto-approve mode, skip onboarding wizard (for claude user)
+RUN mkdir -p /home/claude/.claude && printf '{\n  "theme": "dark",\n  "skipAutoPermissionPrompt": true,\n  "permissions": {\n    "defaultMode": "auto"\n  }\n}\n' > /home/claude/.claude/settings.json \
+    && chown -R claude:claude /home/claude/.claude
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Entrypoint runs as root so it can chown user_analysis, then drops to claude via gosu
 ENTRYPOINT ["/entrypoint.sh"]

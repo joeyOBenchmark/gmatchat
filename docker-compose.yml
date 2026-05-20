@@ -11,14 +11,17 @@ services:
     volumes:
       - ./:/workspace
       - /home/joeyoberholtzer/installs/gmat-ubuntu-x64-R2025a/GMAT/R2025a:/gmat:ro
+      - claude_config:/home/claude/.claude
     env_file:
       - path: .env
         required: false
     environment:
-      - ANTHROPIC_API_KEY
       - GITHUB_TOKEN
     restart: unless-stopped
 
 secrets:
   gmatbard_github_token:
     environment: GMATBARD_GITHUB_TOKEN
+
+volumes:
+  claude_config:
