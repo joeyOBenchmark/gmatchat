@@ -1,0 +1,264 @@
+********************************************************
+*** Targeter Text File
+*** 
+*** Using Differential Correction
+***
+*** 1 variables
+*** 1 goals
+***
+*** Variables:
+***    CubeSat_chemical_burn_v_plus.Element1
+***    
+*** Goals:
+***    CubeSat.Earth.ECC
+***    
+*** SolverMode:  Solve
+***    
+********************************************************
+
+Iteration 1
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 0
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.7190491371999991
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -2.905141716830287
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.2
+   
+Iteration 2
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.2
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.6460120301970605
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -2.738334090806107
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.4
+   
+Iteration 3
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.4
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.5645454767397298
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -2.45499522825343
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.6000000000000001
+   
+Iteration 4
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.6000000000000001
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.4746494768280073
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -2.224793096426974
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.8
+   
+Iteration 5
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 0.8
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.3763240304618929
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -2.034061449925188
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1
+   
+Iteration 6
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.2695691376413866
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -1.873450431319083
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.2
+   
+Iteration 7
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.2
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.1543847983664886
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -1.736347156731799
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.4
+   
+Iteration 8
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.4
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.03077101263720301
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -1.617942520084291
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.449785729731782
+   
+Iteration 9
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.449785729731782
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.00131033267218029
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   -1.689904299252092
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.45200006654795
+   
+Iteration 10
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.45200006654795
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 0.002749358244579482
+   Tolerance: 0.001
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   -0.3442172869594362
+
+
+Inverse Jacobian:
+   1.53877516747405
+
+
+New scaled variable estimates:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.447769422354701
+   
+Iteration 11
+Running Nominal Pass
+Variables:
+   CubeSat_chemical_burn_v_plus.Element1 = 1.447769422354701
+   
+Goals and achieved values:
+   CubeSat.Earth.ECC  Desired: 0 Achieved: 8.98986993235422e-07
+   Tolerance: 0.001
+   
+********************************************************
+
+
+********************************************************
+*** Targeting Completed in 11 iterations
+********************************************************
+
