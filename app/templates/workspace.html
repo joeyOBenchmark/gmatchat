@@ -34,7 +34,7 @@
 
   </div>
 
-  <!-- File content modal -->
+  <!-- Text file modal -->
   <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="File content">
     <div class="modal-content" id="modalContent">
       <div class="modal-header">
@@ -42,6 +42,17 @@
         <button class="modal-close" id="modalClose" title="Close">&times;</button>
       </div>
       <pre id="modalPre"></pre>
+    </div>
+  </div>
+
+  <!-- HTML/interactive plot modal -->
+  <div class="modal-overlay modal-overlay--plot" id="plotOverlay" role="dialog" aria-modal="true" aria-label="Plot viewer">
+    <div class="modal-content modal-content--plot" id="plotContent">
+      <div class="modal-header">
+        <span class="modal-filename" id="plotFilename"></span>
+        <button class="modal-close" id="plotClose" title="Close">&times;</button>
+      </div>
+      <iframe id="plotFrame" class="plot-frame" src="" frameborder="0"></iframe>
     </div>
   </div>
 
@@ -59,6 +70,8 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
+    const HTML_EXTENSIONS = new Set(['html', 'htm']);
+
     const VIEWABLE_EXTENSIONS = new Set([
       'txt', 'log', 'py', 'script', 'gmat', 'mat', 'csv', 'tsv',
       'json', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf',
@@ -67,9 +80,11 @@
       'f', 'f90', 'for', 'report', 'summary', 'data',
     ]);
 
-    function isViewable(filename) {
+    function fileType(filename) {
       const ext = filename.split('.').pop().toLowerCase();
-      return VIEWABLE_EXTENSIONS.has(ext);
+      if (HTML_EXTENSIONS.has(ext)) return 'html';
+      if (VIEWABLE_EXTENSIONS.has(ext)) return 'text';
+      return 'binary';
     }
 
     // ── File tree rendering ──────────────────────────────────────
@@ -112,14 +127,16 @@
           </div>`;
           html += renderTree(meta.__children__, depth + 1);
         } else {
-          const viewable = isViewable(name);
+          const ftype   = fileType(name);
+          const viewable = ftype !== 'binary';
+          const icon     = ftype === 'html' ? '&#128202;' : '&#128196;';
           const sizeStr  = humanSize(meta.__size__);
           const path     = meta.__path__;
           html += `<div class="file-item ${viewable ? 'file-viewable' : ''}"
               style="padding-left:${indent + 12}px"
-              ${viewable ? `data-path="${escapeAttr(path)}"` : ''}
+              ${viewable ? `data-path="${escapeAttr(path)}" data-filetype="${ftype}"` : ''}
               title="${escapeAttr(path)}">
-            <span class="file-icon">&#128196;</span>
+            <span class="file-icon">${icon}</span>
             <span class="file-name">${escapeHtml(name)}</span>
             <span class="file-actions">
               <a class="file-download"
@@ -165,7 +182,13 @@
 
         // Attach click handlers for viewable files
         treeEl.querySelectorAll('.file-viewable').forEach(el => {
-          el.addEventListener('click', () => openFile(el.dataset.path));
+          el.addEventListener('click', () => {
+            if (el.dataset.filetype === 'html') {
+              openPlot(el.dataset.path);
+            } else {
+              openFile(el.dataset.path);
+            }
+          });
         });
       } catch (err) {
         console.warn('File refresh failed:', err);
@@ -198,13 +221,39 @@
     }
 
     document.getElementById('modalClose').addEventListener('click', closeModal);
-
     document.getElementById('modalOverlay').addEventListener('click', function(e) {
       if (e.target === this) closeModal();
     });
 
+    // ── Plot (HTML) modal ────────────────────────────────────────
+
+    function openPlot(path) {
+      const overlay = document.getElementById('plotOverlay');
+      const frame   = document.getElementById('plotFrame');
+      const label   = document.getElementById('plotFilename');
+      const parts   = path.split('/');
+      label.textContent = parts[parts.length - 1];
+      frame.src = FILES_BASE + encodePath(path);
+      overlay.classList.add('active');
+    }
+
+    function closePlot() {
+      const overlay = document.getElementById('plotOverlay');
+      overlay.classList.remove('active');
+      // Clear src so the plot stops running when closed
+      document.getElementById('plotFrame').src = '';
+    }
+
+    document.getElementById('plotClose').addEventListener('click', closePlot);
+    document.getElementById('plotOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closePlot();
+    });
+
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') {
+        closeModal();
+        closePlot();
+      }
     });
 
     // ── Bootstrap ────────────────────────────────────────────────

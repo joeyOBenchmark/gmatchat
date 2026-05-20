@@ -96,6 +96,13 @@ git -C /workspace commit -m "sim_name: brief description of what this commit add
 git -C /workspace push
 ```
 
+## ASCII Requirement
+GMAT only accepts ASCII characters. All `.script` files and any strings passed to
+gmatbard (object names, comments, file paths) must be pure ASCII — no Unicode,
+curly quotes, dashes, degree symbols, subscripts, or any non-ASCII character.
+This applies to Python scripts as well: avoid non-ASCII in any string that ends up
+in a generated .script file.
+
 ## Iteration
 If a simulation fails or the results look wrong, diagnose from the GMAT output log
 before changing the script. Common issues: unit mismatches, stopping condition never
@@ -216,10 +223,12 @@ def api_files(name):
 @app.route('/files/<name>/<path:filepath>')
 def serve_file(name, filepath):
     base_path = f'/workspace/user_analysis/{name}'
-    inline_extensions = {'.txt', '.py', '.script', '.log', '.md'}
     _, ext = os.path.splitext(filepath)
-    if ext.lower() in inline_extensions:
+    ext = ext.lower()
+    if ext in {'.txt', '.py', '.script', '.log', '.md', '.csv', '.json', '.yaml', '.yml'}:
         return send_from_directory(base_path, filepath, mimetype='text/plain')
+    elif ext in {'.html', '.htm'}:
+        return send_from_directory(base_path, filepath, mimetype='text/html')
     else:
         return send_from_directory(base_path, filepath, as_attachment=True)
 

@@ -363,3 +363,18 @@ a:hover {
   background: #30363d;
   border-radius: 4px;
 }
+
+/* ── Plot (HTML) modal ──────────────────────────────────────────── */
+.modal-overlay--plot .modal-content {
+  max-width: 92vw;
+  max-height: 92vh;
+  width: 92vw;
+  height: 92vh;
+}
+
+.plot-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #ffffff;
+}
