@@ -32,12 +32,14 @@ RUN su -c 'git config --global user.email "claude@gmatchat.local"' claude \
 
 ENV GMAT_PATH=/gmat
 ENV PATH="/gmat/bin:${PATH}"
+ENV PYTHONPATH=/gmatbard
 
-# Clone gmatbard from GitHub and install — token is passed via BuildKit secret
-# and never baked into an image layer
-RUN --mount=type=secret,id=github_token \
-    git clone https://$(cat /run/secrets/github_token)@github.com/joeyOBenchmark/gmatbard.git /gmatbard \
-    && pip install -e /gmatbard
+# Clone gmatbard and install its runtime dependencies.
+# We set PYTHONPATH rather than `pip install` because the pyproject.toml
+# metadata is incomplete and misses subpackages.
+RUN --mount=type=secret,id=gmatbard_github_token \
+    git clone https://$(cat /run/secrets/gmatbard_github_token)@github.com/joeyOBenchmark/gmatbard.git /gmatbard \
+    && pip install numpy pandas matplotlib
 
 RUN mkdir -p /workspace/user_analysis
 
