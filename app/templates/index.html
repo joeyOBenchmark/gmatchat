@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gmatchat</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="landing">
+    <div class="card">
+      <h1 class="app-title">gmatchat</h1>
+      <p class="app-subtitle">GMAT Mission Design Assistant</p>
+
+      <form action="/open" method="POST">
+        <div class="form-group">
+          <input
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Analysis name"
+            autocomplete="on"
+            required
+            autofocus
+          >
+        </div>
+        <button type="submit" class="btn-primary">Open Workspace</button>
+      </form>
+
+      <p class="helper-text">
+        Enter a name for your analysis. Previous sessions can be resumed by
+        re-entering the same name.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

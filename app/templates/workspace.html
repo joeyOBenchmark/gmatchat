@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gmatchat — {{ name }}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="workspace">
+
+    <!-- Left panel: file browser -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">{{ name }}</div>
+        <div class="sidebar-subtitle">Analysis Files</div>
+        <button class="btn-refresh" id="refreshBtn" title="Refresh file list">&#8635; Refresh</button>
+      </div>
+      <div class="file-tree" id="fileTree">
+        <div class="empty-state">No files yet</div>
+      </div>
+    </aside>
+
+    <!-- Right panel: terminal iframe -->
+    <main class="terminal-panel">
+      <iframe
+        class="terminal-frame"
+        src="http://localhost:{{ port }}"
+        title="Terminal"
+        frameborder="0"
+        allowfullscreen
+      ></iframe>
+    </main>
+
+  </div>
+
+  <!-- File content modal -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-label="File content">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-header">
+        <span class="modal-filename" id="modalFilename"></span>
+        <button class="modal-close" id="modalClose" title="Close">&times;</button>
+      </div>
+      <pre id="modalPre"></pre>
+    </div>
+  </div>
+
+  <script>
+    const ANALYSIS_NAME = {{ name | tojson }};
+    const FILES_API    = '/api/files/' + ANALYSIS_NAME;
+    const FILES_BASE   = '/files/' + ANALYSIS_NAME + '/';
+
+    // ── Utilities ────────────────────────────────────────────────
+
+    function humanSize(bytes) {
+      if (bytes === null || bytes === undefined) return '';
+      if (bytes < 1024)       return bytes + ' B';
+      if (bytes < 1048576)    return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    const VIEWABLE_EXTENSIONS = new Set([
+      'txt', 'log', 'py', 'script', 'gmat', 'mat', 'csv', 'tsv',
+      'json', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf',
+      'md', 'rst', 'sh', 'bash', 'bat', 'out', 'err', 'xml',
+      'html', 'htm', 'css', 'js', 'c', 'h', 'cpp', 'hpp',
+      'f', 'f90', 'for', 'report', 'summary', 'data',
+    ]);
+
+    function isViewable(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      return VIEWABLE_EXTENSIONS.has(ext);
+    }
+
+    // ── File tree rendering ──────────────────────────────────────
+
+    /**
+     * Build a nested object from a flat array of file entries.
+     * Each entry: { path, size, is_dir }
+     */
+    function buildTree(entries) {
+      const root = {};
+      for (const entry of entries) {
+        const parts = entry.path.split('/');
+        let node = root;
+        for (let i = 0; i < parts.length - 1; i++) {
+          const part = parts[i];
+          if (!node[part]) node[part] = { __dir__: true, __children__: {} };
+          node = node[part].__children__;
+        }
+        const leaf = parts[parts.length - 1];
+        node[leaf] = { __dir__: entry.is_dir, __size__: entry.size, __path__: entry.path, __children__: {} };
+      }
+      return root;
+    }
+
+    function renderTree(node, depth) {
+      const indent = depth * 14;
+      let html = '';
+      const entries = Object.entries(node).sort(([a, va], [b, vb]) => {
+        // Dirs first, then files, both alphabetical
+        if (va.__dir__ && !vb.__dir__) return -1;
+        if (!va.__dir__ && vb.__dir__) return 1;
+        return a.localeCompare(b);
+      });
+
+      for (const [name, meta] of entries) {
+        if (meta.__dir__) {
+          html += `<div class="file-item file-dir" style="padding-left:${indent + 12}px" data-folder="${name}">
+            <span class="file-icon">&#128193;</span>
+            <span class="file-name">${escapeHtml(name)}</span>
+          </div>`;
+          html += renderTree(meta.__children__, depth + 1);
+        } else {
+          const viewable = isViewable(name);
+          const sizeStr  = humanSize(meta.__size__);
+          const path     = meta.__path__;
+          html += `<div class="file-item ${viewable ? 'file-viewable' : ''}"
+              style="padding-left:${indent + 12}px"
+              ${viewable ? `data-path="${escapeAttr(path)}"` : ''}
+              title="${escapeAttr(path)}">
+            <span class="file-icon">&#128196;</span>
+            <span class="file-name">${escapeHtml(name)}</span>
+            <span class="file-actions">
+              <a class="file-download"
+                 href="/files/${encodeURIComponent(ANALYSIS_NAME)}/${encodePath(path)}"
+                 download="${escapeAttr(name)}"
+                 title="Download"
+                 onclick="event.stopPropagation()">&#8681;</a>
+              <span class="file-size">${sizeStr}</span>
+            </span>
+          </div>`;
+        }
+      }
+      return html;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function escapeAttr(s) {
+      return s.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function encodePath(p) {
+      return p.split('/').map(encodeURIComponent).join('/');
+    }
+
+    // ── Fetch and render ─────────────────────────────────────────
+
+    async function refreshFiles() {
+      try {
+        const resp = await fetch(FILES_API);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();   // expected: { files: [...] }
+        const files = Array.isArray(data) ? data : (data.files || []);
+        const treeEl = document.getElementById('fileTree');
+
+        if (!files.length) {
+          treeEl.innerHTML = '<div class="empty-state">No files yet</div>';
+          return;
+        }
+
+        const tree = buildTree(files);
+        treeEl.innerHTML = renderTree(tree, 0);
+
+        // Attach click handlers for viewable files
+        treeEl.querySelectorAll('.file-viewable').forEach(el => {
+          el.addEventListener('click', () => openFile(el.dataset.path));
+        });
+      } catch (err) {
+        console.warn('File refresh failed:', err);
+      }
+    }
+
+    // ── Modal ────────────────────────────────────────────────────
+
+    async function openFile(path) {
+      const overlay = document.getElementById('modalOverlay');
+      const pre     = document.getElementById('modalPre');
+      const label   = document.getElementById('modalFilename');
+      const parts   = path.split('/');
+      label.textContent = parts[parts.length - 1];
+      pre.textContent   = 'Loading…';
+      overlay.classList.add('active');
+
+      try {
+        const resp = await fetch(FILES_BASE + encodePath(path));
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const text = await resp.text();
+        pre.textContent = text;
+      } catch (err) {
+        pre.textContent = 'Error loading file: ' + err.message;
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // ── Bootstrap ────────────────────────────────────────────────
+
+    document.getElementById('refreshBtn').addEventListener('click', refreshFiles);
+
+    refreshFiles();
+    setInterval(refreshFiles, 4000);
+  </script>
+</body>
+</html>
