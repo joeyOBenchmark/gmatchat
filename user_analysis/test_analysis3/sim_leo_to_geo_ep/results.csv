@@ -1,0 +1,13 @@
+metric,value,units
+initial_altitude_km,500.0,km
+target_altitude_km,35786.0,km
+initial_mass_kg,200.00,kg
+final_mass_kg,154.66,kg
+propellant_consumed_kg,45.34,kg
+total_delta_v_m_s,4540.2,m/s
+transfer_time_days,47.33,days
+final_sma_km,42163.8,km
+final_rad_periapsis_km,41467.0,km
+final_rad_apoapsis_km,42860.5,km
+final_inclination_deg,28.3128,deg
+final_eccentricity,0.016524,

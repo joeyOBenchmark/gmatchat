@@ -1,0 +1,149 @@
+********************************************************
+*** Targeter Text File
+*** 
+*** Using Differential Correction
+***
+*** 1 variables
+*** 1 goals
+***
+*** Variables:
+***    dt_EP_burn_s
+***    
+*** Goals:
+***    Sat.EarthMJ2000Eq.BrouwerShortSMA
+***    
+*** SolverMode:  Solve
+***    
+********************************************************
+
+Iteration 1
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 0
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 29084.68691955438
+   Tolerance: 0.1
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   0.01965277211478195
+
+
+Inverse Jacobian:
+   50.88340688832616
+
+
+New scaled variable estimates:
+   dt_EP_burn_s = 665526.9803188652
+   
+Iteration 2
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 665526.9803188652
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 49041.3306341691
+   Tolerance: 0.1
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   0.01965277211478195
+
+
+Inverse Jacobian:
+   33.34864267940425
+
+
+New scaled variable estimates:
+   dt_EP_burn_s = 436181.9071758864
+   
+Iteration 3
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 436181.9071758864
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 40195.12774508938
+   Tolerance: 0.1
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   0.01965277211478195
+
+
+Inverse Jacobian:
+   25.92582105776659
+
+
+New scaled variable estimates:
+   dt_EP_burn_s = 487230.0887797857
+   
+Iteration 4
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 487230.0887797857
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 41937.27179365794
+   Tolerance: 0.1
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   0.01965277211478195
+
+
+Inverse Jacobian:
+   29.30192922097526
+
+
+New scaled variable estimates:
+   dt_EP_burn_s = 493877.6769987228
+   
+Iteration 5
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 493877.6769987228
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 42171.72726902425
+   Tolerance: 0.1
+   
+********************************************************
+
+
+Jacobian (Sensitivity matrix):
+   0.01965277211478195
+
+
+Inverse Jacobian:
+   28.35330763144192
+
+
+New scaled variable estimates:
+   dt_EP_burn_s = 493662.4677660728
+   
+Iteration 6
+Running Nominal Pass
+Variables:
+   dt_EP_burn_s = 493662.4677660728
+   
+Goals and achieved values:
+   Sat.EarthMJ2000Eq.BrouwerShortSMA  Desired: 42164.137 Achieved: 42164.11612915685
+   Tolerance: 0.1
+   
+********************************************************
+
+
+********************************************************
+*** Targeting Completed in 6 iterations
+********************************************************
+
