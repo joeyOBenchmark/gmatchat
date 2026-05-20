@@ -61,30 +61,90 @@ from gmatbard.high_level import SimBuilder, Starship, MissionSequenceBuilder
 - Use the high-level API by default. Drop to low-level only when the high-level API
   cannot express the required behaviour.
 
-## Running a Simulation
-```python
-# 1. Generate the .script file
-sim.generate('sim_name/mission.script')
+## Simulation Workflow
+Every generate.py must follow this exact structure:
 
-# 2. Execute it
-from gmatbard.low_level.script_execution import GmatExecutor
-result = GmatExecutor().execute('sim_name/mission.script')
-print(result.stdout)
+### 1. Build and run
+```python
+from gmatbard.high_level import SimBuilder, Starship, MissionSequenceBuilder
+
+sim = SimBuilder(name="MissionName")
+vehicle = Starship(sim, name="Sat", ...)
+msb = MissionSequenceBuilder(sim.script, vehicle.spacecraft, sim.propagator_name)
+# ... add maneuvers ...
+msb.finalize()
+
+script_path = sim.generate('sim_leo_to_geo/mission.script')
+results = sim.run()   # always use sim.run(), not GmatExecutor directly
+print(results)
 ```
-`GmatConsole` is on PATH. GMAT outputs (BurnReport, Ephemeris) are written to the
-directory where the .script file lives.
 
-## Plotting
+### 2. Parse results
 ```python
-from gmatbard.visualization.burn_plots import BurnReportPlotter
-from gmatbard.visualization.trajectory_plots import plot_trajectory_3d  # check exact API
+from gmatbard.low_level.result_parsers import ResultParser
 
-plotter = BurnReportPlotter('sim_name/Sat_BurnReport.csv')
-fig = plotter.plot_burn_summary()          # returns a matplotlib Figure
+parser = ResultParser()
+log_data     = parser.parse_log_file(script_path)
+report_data  = parser.parse_report_files(script_path, sim.script.reports)
+# log_data keys: content, mission_sequence_results, propagation_results, burn_results
+# report_data: list of dicts, one per report file (BurnReport, Ephemeris, etc.)
+```
+
+### 3. Write results.csv
+Extract key numbers from log_data/report_data and write a tidy CSV:
+delta-V per maneuver, total delta-V, propellant consumed, final orbit elements,
+transfer time. Always include units in column headers (e.g. "delta_v_m_s").
+
+### 4. Generate plots
+```python
+import os, matplotlib
+matplotlib.use('Agg')   # headless — no display in container
+import matplotlib.pyplot as plt
+from gmatbard.visualization import BurnReportPlotter, EphemerisPlotter, TrajectoryPlotter
+from bokeh.io import save
+from bokeh.resources import CDN
+import plotly.io as pio
+
+os.makedirs('sim_name/plots', exist_ok=True)
+
+# ── BurnReportPlotter (from BurnReport.csv) ──────────────────
+bp = BurnReportPlotter('sim_name/Sat_BurnReport.csv')
+
+fig = bp.plot_summary_mpl()                # mass + dv + orbit panels
 fig.savefig('sim_name/plots/burn_summary.png', dpi=150, bbox_inches='tight')
+plt.close(fig)
+
+fig = bp.plot_dv_mpl()
+fig.savefig('sim_name/plots/delta_v.png', dpi=150, bbox_inches='tight')
+plt.close(fig)
+
+fig = bp.plot_mass_mpl()
+fig.savefig('sim_name/plots/mass_history.png', dpi=150, bbox_inches='tight')
+plt.close(fig)
+
+save(bp.plot_summary_bokeh(), filename='sim_name/plots/burn_summary.html', resources=CDN, title='Burn Summary')
+
+# ── EphemerisPlotter (from .dat OMERE ephemeris) ─────────────
+ep = EphemerisPlotter('sim_name/Sat_Ephemeris.oem.dat')  # adjust filename as needed
+
+fig = ep.plot_summary_mpl()
+fig.savefig('sim_name/plots/ephemeris_summary.png', dpi=150, bbox_inches='tight')
+plt.close(fig)
+
+save(ep.plot_summary_bokeh(), filename='sim_name/plots/ephemeris.html', resources=CDN, title='Ephemeris')
+
+# ── TrajectoryPlotter (from .oem ephemeris) ──────────────────
+tp = TrajectoryPlotter('sim_name/Sat_Ephemeris.oem')
+
+fig = tp.plot_trajectory_mpl()
+fig.savefig('sim_name/plots/trajectory_3d.png', dpi=150, bbox_inches='tight')
+plt.close(fig)
+
+pio.write_html(tp.plot_trajectory_plotly(), file='sim_name/plots/trajectory_3d.html', auto_open=False)
+save(tp.plot_trajectory_bokeh(), filename='sim_name/plots/trajectory_2d.html', resources=CDN, title='Trajectory')
 ```
-Always call `plt.close(fig)` or `matplotlib.pyplot.close('all')` after saving so
-figures don't accumulate in memory across multiple runs.
+Not every output file exists for every mission type — check before plotting and skip
+gracefully if a file is missing.
 
 ## Committing Work
 Commit after each meaningful step: after a simulation runs successfully, after plots
@@ -95,6 +155,24 @@ git -C /workspace add user_analysis/{name}/
 git -C /workspace commit -m "sim_name: brief description of what this commit adds"
 git -C /workspace push
 ```
+
+## Reporting gmatbard Issues
+Whenever you hit a bug, undocumented behaviour, missing feature, or anything that
+causes you to stumble while using gmatbard, append an entry to
+`gmatbard_issues.md` in this analysis folder. Create the file if it does not exist.
+
+Use this format for each entry:
+```
+## <short title>
+**Date:** <today's date>
+**Location:** <module or method where the issue occurs, e.g. gmatbard.high_level.sim_builder.SimBuilder.run>
+**What happened:** <what the code did>
+**What was expected:** <what it should have done>
+**Workaround:** <what you did instead, or "none found">
+```
+
+Commit gmatbard_issues.md whenever you add a new entry. This file is the primary
+feedback channel for improving the library.
 
 ## ASCII Requirement
 GMAT only accepts ASCII characters. All `.script` files and any strings passed to
@@ -229,6 +307,8 @@ def serve_file(name, filepath):
         return send_from_directory(base_path, filepath, mimetype='text/plain')
     elif ext in {'.html', '.htm'}:
         return send_from_directory(base_path, filepath, mimetype='text/html')
+    elif ext in {'.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'}:
+        return send_from_directory(base_path, filepath)  # Flask infers image MIME type
     else:
         return send_from_directory(base_path, filepath, as_attachment=True)
 

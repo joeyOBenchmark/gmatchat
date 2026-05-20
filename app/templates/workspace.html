@@ -45,6 +45,20 @@
     </div>
   </div>
 
+  <!-- Image modal -->
+  <div class="modal-overlay modal-overlay--image" id="imageOverlay" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div class="modal-content modal-content--image" id="imageContent">
+      <div class="modal-header">
+        <span class="modal-filename" id="imageFilename"></span>
+        <a class="modal-download" id="imageDownload" download title="Download">&#8681; Download</a>
+        <button class="modal-close" id="imageClose" title="Close">&times;</button>
+      </div>
+      <div class="image-frame">
+        <img id="imageEl" src="" alt="">
+      </div>
+    </div>
+  </div>
+
   <!-- HTML/interactive plot modal -->
   <div class="modal-overlay modal-overlay--plot" id="plotOverlay" role="dialog" aria-modal="true" aria-label="Plot viewer">
     <div class="modal-content modal-content--plot" id="plotContent">
@@ -70,7 +84,8 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
-    const HTML_EXTENSIONS = new Set(['html', 'htm']);
+    const HTML_EXTENSIONS  = new Set(['html', 'htm']);
+    const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp']);
 
     const VIEWABLE_EXTENSIONS = new Set([
       'txt', 'log', 'py', 'script', 'gmat', 'mat', 'csv', 'tsv',
@@ -82,7 +97,8 @@
 
     function fileType(filename) {
       const ext = filename.split('.').pop().toLowerCase();
-      if (HTML_EXTENSIONS.has(ext)) return 'html';
+      if (HTML_EXTENSIONS.has(ext))  return 'html';
+      if (IMAGE_EXTENSIONS.has(ext)) return 'image';
       if (VIEWABLE_EXTENSIONS.has(ext)) return 'text';
       return 'binary';
     }
@@ -129,7 +145,9 @@
         } else {
           const ftype   = fileType(name);
           const viewable = ftype !== 'binary';
-          const icon     = ftype === 'html' ? '&#128202;' : '&#128196;';
+          const icon = ftype === 'html'  ? '&#128202;'
+                     : ftype === 'image' ? '&#128444;'
+                     : '&#128196;';
           const sizeStr  = humanSize(meta.__size__);
           const path     = meta.__path__;
           html += `<div class="file-item ${viewable ? 'file-viewable' : ''}"
@@ -183,11 +201,9 @@
         // Attach click handlers for viewable files
         treeEl.querySelectorAll('.file-viewable').forEach(el => {
           el.addEventListener('click', () => {
-            if (el.dataset.filetype === 'html') {
-              openPlot(el.dataset.path);
-            } else {
-              openFile(el.dataset.path);
-            }
+            if (el.dataset.filetype === 'html')  openPlot(el.dataset.path);
+            else if (el.dataset.filetype === 'image') openImage(el.dataset.path);
+            else openFile(el.dataset.path);
           });
         });
       } catch (err) {
@@ -225,6 +241,32 @@
       if (e.target === this) closeModal();
     });
 
+    // ── Image modal ──────────────────────────────────────────────
+
+    function openImage(path) {
+      const overlay = document.getElementById('imageOverlay');
+      const img     = document.getElementById('imageEl');
+      const label   = document.getElementById('imageFilename');
+      const dl      = document.getElementById('imageDownload');
+      const parts   = path.split('/');
+      const url     = FILES_BASE + encodePath(path);
+      label.textContent = parts[parts.length - 1];
+      dl.href = url;
+      dl.download = parts[parts.length - 1];
+      img.src = url;
+      overlay.classList.add('active');
+    }
+
+    function closeImage() {
+      document.getElementById('imageOverlay').classList.remove('active');
+      document.getElementById('imageEl').src = '';
+    }
+
+    document.getElementById('imageClose').addEventListener('click', closeImage);
+    document.getElementById('imageOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeImage();
+    });
+
     // ── Plot (HTML) modal ────────────────────────────────────────
 
     function openPlot(path) {
@@ -253,6 +295,7 @@
       if (e.key === 'Escape') {
         closeModal();
         closePlot();
+        closeImage();
       }
     });
 

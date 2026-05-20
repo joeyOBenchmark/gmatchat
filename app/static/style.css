@@ -364,6 +364,49 @@ a:hover {
   border-radius: 4px;
 }
 
+/* ── Image modal ────────────────────────────────────────────────── */
+.modal-overlay--image .modal-content {
+  max-width: 92vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+}
+
+.image-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 16px;
+  flex: 1;
+  background: #0d1117;
+}
+
+.image-frame img {
+  max-width: 100%;
+  max-height: calc(92vh - 60px);
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
+}
+
+.modal-download {
+  color: #8b949e;
+  font-size: 0.8rem;
+  text-decoration: none;
+  padding: 3px 8px;
+  border: 1px solid #30363d;
+  border-radius: 5px;
+  margin-right: 8px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.modal-download:hover {
+  color: #58a6ff;
+  border-color: #58a6ff;
+  text-decoration: none;
+}
+
 /* ── Plot (HTML) modal ──────────────────────────────────────────── */
 .modal-overlay--plot .modal-content {
   max-width: 92vw;
