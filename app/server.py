@@ -259,7 +259,8 @@ def open_analysis():
 @app.route('/workspace/<name>')
 def workspace(name):
     port = ensure_session(name)
-    return render_template('workspace.html', name=name, port=port)
+    host = request.host.split(':')[0]
+    return render_template('workspace.html', name=name, port=port, host=host)
 
 
 @app.route('/api/files/<name>')
