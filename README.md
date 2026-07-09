@@ -1,11 +1,8 @@
-1. Create the GitHub repo and add the remote (do this once on the host, outside Docker):
-# Create the repo on GitHub first (github.com/new), then:
-git remote add origin https://github.com/joeyOBenchmark/gmatchat.git
-git push -u origin main
+1. Clone this repo to the host server
 
 2. Create your .env file:
 cp .env.example .env
-# then fill in the keys
+then fill in the keys
 
 3. Token permissions needed (one fine-grained PAT covering both repos):
 - joeyOBenchmark/gmatbard — Contents: Read
