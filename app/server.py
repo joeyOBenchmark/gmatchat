@@ -196,6 +196,15 @@ def seed_claude_md(name, analysis_path):
             f.write(CLAUDE_MD_TEMPLATE.format(name=name))
 
 
+def sanitize_name(name):
+    """Restrict an analysis name to a safe slug: strip whitespace, spaces to
+    underscores, then keep only alphanumerics, underscore, and hyphen. Returns
+    '' if nothing survives. Applied on EVERY route so a name can never carry a
+    path separator or shell metacharacter into the filesystem or a subprocess."""
+    name = (name or '').strip().replace(' ', '_')
+    return re.sub(r'[^a-zA-Z0-9_-]', '', name)
+
+
 def get_next_port():
     used = {s['port'] for s in active_sessions.values()}
     for p in range(BASE_PORT, BASE_PORT + MAX_SESSIONS):
@@ -208,18 +217,25 @@ def spawn_ttyd(name, analysis_path):
     port = get_next_port()
     if port is None:
         return None
+    # Constant argv — the analysis path is passed as the subprocess cwd, never
+    # interpolated into a shell string. ttyd's child bash inherits this cwd.
     cmd = [
         'ttyd', '-p', str(port), '--writable',
-        'bash', '-c',
-        f'cd {analysis_path} && exec claude'
+        'bash', '-c', 'exec claude'
     ]
-    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    proc = subprocess.Popen(
+        cmd, cwd=analysis_path,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
     active_sessions[name] = {'port': port, 'process': proc}
     return port
 
 
 def ensure_session(name):
     """Start a ttyd session for name if not already running."""
+    name = sanitize_name(name)
+    if not name:
+        return None
     if name in active_sessions:
         proc = active_sessions[name]['process']
         if proc.poll() is None:  # still running
@@ -239,10 +255,7 @@ def index():
 
 @app.route('/open', methods=['POST'])
 def open_analysis():
-    name = request.form.get('name', '')
-    # Sanitize: strip whitespace, replace spaces with underscores, keep only alphanumeric/underscore/hyphen
-    name = name.strip().replace(' ', '_')
-    name = re.sub(r'[^a-zA-Z0-9_-]', '', name)
+    name = sanitize_name(request.form.get('name', ''))
     if not name:
         return redirect(url_for('index'))
 
@@ -258,6 +271,9 @@ def open_analysis():
 
 @app.route('/workspace/<name>')
 def workspace(name):
+    name = sanitize_name(name)
+    if not name:
+        return redirect(url_for('index'))
     port = ensure_session(name)
     host = request.host.split(':')[0]
     return render_template('workspace.html', name=name, port=port, host=host)
@@ -265,6 +281,9 @@ def workspace(name):
 
 @app.route('/api/files/<name>')
 def api_files(name):
+    name = sanitize_name(name)
+    if not name:
+        return jsonify([])
     base_path = f'/workspace/user_analysis/{name}'
     if not os.path.isdir(base_path):
         return jsonify([])
@@ -301,6 +320,9 @@ def api_files(name):
 
 @app.route('/files/<name>/<path:filepath>')
 def serve_file(name, filepath):
+    name = sanitize_name(name)
+    if not name:
+        return ('Not found', 404)
     base_path = f'/workspace/user_analysis/{name}'
     _, ext = os.path.splitext(filepath)
     ext = ext.lower()

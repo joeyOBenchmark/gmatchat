@@ -5,6 +5,12 @@ set -e
 # Handles directories created by older root-based runs.
 chown -R claude:claude /workspace/user_analysis
 
+# claude runs with a non-1000 uid so it cannot modify the host-owned source
+# tree. Give it ownership of .git so the per-analysis git commit/push workflow
+# still works. The working-tree source files stay owned by the host user and
+# remain read-only to claude.
+chown -R claude:claude /workspace/.git
+
 # Configure git for both root (for remote rewriting below) and the claude user
 git config --global --add safe.directory /workspace
 gosu claude git config --global --add safe.directory /workspace

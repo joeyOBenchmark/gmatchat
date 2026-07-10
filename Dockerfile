@@ -26,7 +26,11 @@ RUN npm install -g @anthropic-ai/claude-code
 
 RUN pip install flask
 
-RUN useradd -m -s /bin/bash claude
+# Give claude a uid that does NOT collide with the host repo owner (uid 1000).
+# The repo is bind-mounted read-write; with a non-1000 uid, claude falls into
+# "other" for the host-owned 664/775 source files and cannot modify app/infra
+# code. Its writable surface is scoped by chowns in the entrypoint instead.
+RUN useradd -m -s /bin/bash -u 1001 claude
 
 RUN su -c 'git config --global user.email "claude@gmatchat.local"' claude \
     && su -c 'git config --global user.name "Claude"' claude
