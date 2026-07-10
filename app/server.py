@@ -213,6 +213,26 @@ def get_next_port():
     return None
 
 
+def session_env():
+    """Environment for the interactive claude session, with secrets stripped.
+
+    The session (ttyd -> bash -> claude) would otherwise inherit Flask's full
+    environment, letting the sandboxed agent read tokens/keys with `env`.
+    Removing GITHUB_TOKEN here is safe: git push authenticates via the
+    credential store (~/.git-credentials), not this variable. claude-code
+    authenticates via OAuth in its config volume, so no *_KEY is needed either.
+    """
+    env = os.environ.copy()
+    for key in list(env):
+        upper = key.upper()
+        if (upper in ('GITHUB_TOKEN', 'GMATBARD_GITHUB_TOKEN')
+                or upper.endswith('_TOKEN')
+                or upper.endswith('_KEY')
+                or 'SECRET' in upper):
+            env.pop(key, None)
+    return env
+
+
 def spawn_ttyd(name, analysis_path):
     port = get_next_port()
     if port is None:
@@ -224,7 +244,7 @@ def spawn_ttyd(name, analysis_path):
         'bash', '-c', 'exec claude'
     ]
     proc = subprocess.Popen(
-        cmd, cwd=analysis_path,
+        cmd, cwd=analysis_path, env=session_env(),
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
     )
     active_sessions[name] = {'port': port, 'process': proc}
