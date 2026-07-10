@@ -10,7 +10,7 @@ services:
       - "7681-7690:7681-7690"
     volumes:
       - ./:/workspace
-      - /home/joeyoberholtzer/installs/gmat-ubuntu-x64-R2025a/GMAT/R2025a:/gmat:ro
+      - ${GMAT_HOST_PATH:?set GMAT_HOST_PATH in .env to your GMAT R2025a directory}:/gmat:ro
       - claude_config:/home/claude/.claude
     env_file:
       - path: .env
