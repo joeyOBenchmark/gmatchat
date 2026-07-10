@@ -39,6 +39,27 @@ if [ -n "${GITHUB_TOKEN}" ]; then
     fi
 fi
 
+# Update gmatbard to the latest main on every start. Best-effort: if the repo
+# is unreachable (offline, bad/expired token) we keep the snapshot baked into
+# the image at build time rather than failing the container.
+if [ -n "${GMATBARD_GITHUB_TOKEN}" ]; then
+    GMATBARD_URL="https://x-access-token:${GMATBARD_GITHUB_TOKEN}@github.com/joeyOBenchmark/gmatbard.git"
+    if [ -d /gmatbard/.git ]; then
+        git -C /gmatbard remote set-url origin "${GMATBARD_URL}"
+        if git -C /gmatbard fetch --quiet origin main; then
+            git -C /gmatbard reset --hard --quiet origin/main
+            echo "gmatbard updated to $(git -C /gmatbard rev-parse --short HEAD)"
+        else
+            echo "WARNING: gmatbard fetch failed; using baked-in snapshot" >&2
+        fi
+    else
+        git clone --quiet "${GMATBARD_URL}" /gmatbard \
+            || echo "WARNING: gmatbard clone failed; /gmatbard missing" >&2
+    fi
+else
+    echo "WARNING: GMATBARD_GITHUB_TOKEN unset; using baked-in gmatbard snapshot" >&2
+fi
+
 # Seed default claude settings into the persistent volume on first run
 if [ ! -f /home/claude/.claude/settings.json ]; then
     mkdir -p /home/claude/.claude
