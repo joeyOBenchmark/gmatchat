@@ -219,12 +219,19 @@ def session_env():
     The session (ttyd -> bash -> claude) would otherwise inherit Flask's full
     environment, letting the sandboxed agent read tokens/keys with `env`.
     Removing GITHUB_TOKEN here is safe: git push authenticates via the
-    credential store (~/.git-credentials), not this variable. claude-code
-    authenticates via OAuth in its config volume, so no *_KEY is needed either.
+    credential store (~/.git-credentials), not this variable.
+
+    ANTHROPIC_API_KEY is deliberately KEPT: interactive OAuth login is not
+    working, so claude-code authenticates via this key and must see it in its
+    env. This means the agent can read its own key — unavoidable when the key
+    is what authenticates the agent itself. Use a scoped/low-budget key.
     """
+    keep = {'ANTHROPIC_API_KEY'}
     env = os.environ.copy()
     for key in list(env):
         upper = key.upper()
+        if upper in keep:
+            continue
         if (upper in ('GITHUB_TOKEN', 'GMATBARD_GITHUB_TOKEN')
                 or upper.endswith('_TOKEN')
                 or upper.endswith('_KEY')

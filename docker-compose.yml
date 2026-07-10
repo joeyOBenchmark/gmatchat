@@ -13,17 +13,19 @@ services:
       - /home/joeyoberholtzer/installs/gmat-ubuntu-x64-R2025a/GMAT/R2025a:/gmat:ro
       - claude_config:/home/claude/.claude
     # Do NOT use `env_file` here. It would dump EVERY key in .env into the
-    # container environment (ANTHROPIC_API_KEY and the build-only
-    # GMATBARD_GITHUB_TOKEN included), where the sandboxed claude session can
-    # read them with `env`. Pass ONLY what the runtime actually needs.
-    # Compose still auto-reads .env for the ${...} interpolation below and for
-    # the build secret, so nothing else breaks.
+    # container environment (including the build-only GMATBARD_GITHUB_TOKEN),
+    # where the sandboxed claude session can read them with `env`. Pass ONLY
+    # what the runtime actually needs. Compose still auto-reads .env for the
+    # ${...} interpolation below and for the build secret, so nothing breaks.
     #   - GITHUB_TOKEN: needed by entrypoint.sh to seed git's credential store.
-    #   - ANTHROPIC_API_KEY: intentionally omitted — claude-code authenticates
-    #     via interactive OAuth persisted in the claude_config volume, not a key.
+    #   - ANTHROPIC_API_KEY: needed because interactive OAuth login is not
+    #     working in the session; claude-code authenticates via this key. Note
+    #     the claude agent can read its own key (it IS the process using it) —
+    #     an accepted tradeoff. Scope it to a limited/low-budget key.
     #   - GMATBARD_GITHUB_TOKEN: build-only secret; must never reach runtime.
     environment:
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     restart: unless-stopped
 
 secrets:

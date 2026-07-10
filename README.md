@@ -1,7 +1,5 @@
-1. Create the GitHub repo and add the remote (do this once on the host, outside Docker):
-# Create the repo on GitHub first (github.com/new), then:
-git remote add origin https://github.com/joeyOBenchmark/gmatchat.git
-git push -u origin main
+1. Clone this repo
+
 
 2. Create your .env file:
 cp .env.example .env
@@ -19,8 +17,9 @@ docker compose up -d
 
 The build clones gmatbard using the token as a BuildKit secret (never in image layers). At runtime, the entrypoint writes the token to git's credential store so git push works from inside the container.
 
+5. make sure you have GMAT setup as described in [gmatbard](https://github.com/BenchmarkSpace/gmatbard)
 
-5. Then open localhost:8080
+6. Then open localhost:8080
   the first time you use it you will need to setup the account, and approve warnings but after that it should just open to the chat right away.
 
 
